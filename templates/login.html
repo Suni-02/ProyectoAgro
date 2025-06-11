@@ -1,0 +1,50 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+<h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Iniciar sesión</h2>
+
+<!-- Mensajes flash -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="mb-4">
+        {% for category, message in messages %}
+        <div class="p-3 rounded-md text-white 
+                    {% if category == 'success' %}bg-green-500{% elif category == 'danger' %}bg-red-500{% else %}bg-gray-500{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endwith %}
+
+<form method="POST" action="/login" class="space-y-5">
+    <div>
+    <label for="Dni" class="block text-sm font-medium text-gray-700">Dni</label>
+    <input type="Dni" name="Dni" id="Dni" required
+        class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+    </div>
+
+    <div>
+    <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+    <input type="password" name="password" id="password" required
+        class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+    </div>
+
+    <div>
+    <button type="submit"
+        class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200">
+        Iniciar sesión
+    </button>
+    </div>
+
+    <p class="text-center text-sm text-gray-600">
+    ¿No tienes una cuenta?
+    <a href="{{ url_for('register') }}" class="text-blue-600 hover:underline">Regístrate aquí</a>
+    </p>
+</form>
+</div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,17 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10">
+  <h1 class="text-3xl font-bold mb-6 text-gray-800">Productos Disponibles</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {% for producto in productos %}
+      <div class="bg-white shadow-md rounded-lg p-4">
+        <h2 class="text-xl font-semibold text-gray-800">{{ producto[0] }}</h2>
+        <p class="text-gray-600 mt-2"><span class="font-semibold">Precio:</span> ${{ producto[1] }}</p>
+        <p class="text-gray-600"><span class="font-semibold">vendedora:</span> {{ producto[2] }}</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

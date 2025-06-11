@@ -1,0 +1,31 @@
+{% extends "index.html" %}
+
+
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+<div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Crear rol</h2>
+
+    <form method="POST"  class="space-y-5" action="/nuevo_rol">
+    
+    <!-- ID de Categoría -->
+    <!-- Nombre de Categoría -->
+    <div>
+        <label for="Nombre_rol" class="block text-sm font-medium text-gray-700">Nombre del rol</label>
+        <input type="text" name="Nombre_rol" id="Nombre_rol" required
+            class="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+    </div>
+
+    <!-- Botón -->
+    <div>
+        <button type="submit"
+                class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200">
+        Guardar rol
+        </button>
+    </div>
+    </form>
+</div>
+</div>
+
+{% endblock %}
