@@ -92,16 +92,19 @@ def perfil():
 
 @app.route('/productos')
 def mostrar_productos():
+    if "usuario_id" not in session:
+        flash("Debes registrarte o iniciar sesión para ver los productos", "warning")
+        return redirect("/login")  # Redirige al formulario de registro
+
     productos = obtener_productos_con_usuario()
     return render_template("productos.html", productos=productos)
-
 
 
 @app.route('/crear_producto')
 def crear_producto():
     if "usuario_id" not in session:
         flash("Debes iniciar sesión para crear productos", "warning")
-        return redirect("/crear_producto")
+        return redirect("/login")
     
     from categoria import obtener_categorias  # Lo traemos aquí para evitar dependencia circular si la hay
     categorias = obtener_categorias("SELECT * FROM Categoria_Producto")
