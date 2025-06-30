@@ -1,0 +1,41 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div class="flex justify-center items-center min-h-screen bg-gray-100 py-10">
+  <div class="bg-white shadow-lg rounded-xl w-full max-w-2xl p-8 space-y-6">
+    <div class="flex items-center space-x-4">
+      <img src="https://i.pravatar.cc/150?u={{ usuario.email }}" alt="Avatar" class="w-20 h-20 rounded-full border-4 border-indigo-500 shadow-sm">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-800">¡Hola, {{ usuario.nombre }}!</h2>
+        <p class="text-sm text-gray-500">{{ usuario.rol }}</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <p class="text-sm text-gray-500">Teléfono</p>
+        <p class="text-lg font-semibold text-gray-700">{{ usuario.telefono }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Correo</p>
+        <p class="text-lg font-semibold text-gray-700">{{ usuario.email }}</p>
+      </div>
+      <div>
+        <p class="text-sm text-gray-500">Empresa</p>
+        <p class="text-lg font-semibold text-gray-700">{{ usuario.empresa }}</p>
+      </div>
+    </div>
+
+    <div>
+      <p class="text-sm text-gray-500">Sobre mí</p>
+      <p class="text-base text-gray-700 leading-relaxed">{{ usuario.descripcion }}</p>
+    </div>
+
+    <div class="text-right pt-4">
+      <a href="{{ url_for('productos_comprador') }}" class="inline-block bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300">
+        Volver
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -4,6 +4,7 @@ from producto import insertar_producto, obtener_productos_con_usuario
 from categoria import insertar_categoria
 from rol import insertar_rol,obtener_rol
 from usuario import insertar_Usuario, login_usuario
+from db import obtener_conexion_db
 app = Flask(__name__)
 app.secret_key = "grupoAgro" 
 @app.route('/')
@@ -17,21 +18,24 @@ def register():
 
 @app.route("/registrar_usuario", methods=["POST"])
 def registrar_usuario():
-    # Obtener datos del formulario
     nombre = request.form["Nombre"]
     dni = request.form["Dni"]
     telefono = request.form["Telefono"]
-    id_rol = request.form["Rol"]  # ID del rol seleccionado
+    id_rol = request.form["Rol"]
     nombre_e = request.form["Nombre_E"]
     email = request.form["Email"]
     password = request.form["password"]
     descripcion = request.form["descripcion"]
-    estado_usuario = 1  # o puedes obtenerlo si lo necesitas dinámico
+    estado_usuario = 1
 
-    # Llama a la función para insertar en la base de datos
-    insertar_Usuario(nombre, dni, telefono, id_rol, nombre_e, email, password, descripcion, estado_usuario)
+    resultado = insertar_Usuario(nombre, dni, telefono, id_rol, nombre_e, email, password, descripcion, estado_usuario)
+    if resultado["success"]:
+        flash(resultado["message"], "success")
+        return redirect("/login")
+    else:
+        flash(resultado["message"], "danger")
+        return redirect("/register")
 
-    return redirect("/login")
     
 @app.route('/login', methods=["GET", "POST"])
 def login():
@@ -55,6 +59,35 @@ def login():
             flash(resultado["message"], "danger")
 
     return render_template("login.html")
+
+@app.route('/perfil_publico/<int:id_usuario>')
+def perfil_publico(id_usuario):
+    conexion = obtener_conexion_db()
+    cursor = conexion.cursor()
+    sql = """
+        SELECT Nombre, Telefono, Nombre_E, Email, Descripcion, r.Nombre_rol
+        FROM usuario u
+        JOIN rol r ON u.Id_Rol = r.Id_Rol
+        WHERE Id_Usuario = %s
+    """
+    cursor.execute(sql, (id_usuario,))
+    datos = cursor.fetchone()
+    cursor.close()
+    conexion.close()
+
+    if datos:
+        usuario = {
+            "nombre": datos[0],
+            "telefono": datos[1],
+            "empresa": datos[2],
+            "email": datos[3],
+            "descripcion": datos[4],
+            "rol": datos[5]
+        }
+        return render_template("perfil_publico.html", usuario=usuario)
+    else:
+        flash("Usuario no encontrado", "warning")
+        return redirect("/")
 
 @app.route('/categoria')
 def categoria():
@@ -94,10 +127,12 @@ def perfil():
 def mostrar_productos():
     if "usuario_id" not in session:
         flash("Debes registrarte o iniciar sesión para ver los productos", "warning")
-        return redirect("/login")  # Redirige al formulario de registro
-
-    productos = obtener_productos_con_usuario()
+        return redirect("/login")
+    
+    id_usuario = session["usuario_id"]
+    productos = obtener_productos_con_usuario(id_usuario)
     return render_template("productos.html", productos=productos)
+
 
 
 @app.route('/crear_producto')
@@ -125,6 +160,91 @@ def guardar_producto():
     insertar_producto(nombre, precio, id_categoria, id_usuario)
     flash("Producto guardado exitosamente", "success")
     return redirect("/productos")  # o a donde quieras redirigir
+
+@app.route('/editar_producto/<int:id_producto>', methods=["GET", "POST"])
+def editar_producto(id_producto):
+    if "usuario_id" not in session:
+        flash("Debes iniciar sesión para editar productos", "warning")
+        return redirect("/login")
+    
+    from categoria import obtener_categorias
+    
+    conexion = obtener_conexion_db()
+    cursor = conexion.cursor()
+    
+    if request.method == "POST":
+        nombre = request.form["nombre_producto"]
+        precio = request.form["precio"]
+        id_categoria = request.form["id_categoria"]
+        
+        sql = """
+        UPDATE producto
+        SET Nombre_Producto=%s, Precio=%s, Id_Categoria=%s
+        WHERE Id_Producto=%s
+        """
+        valores = (nombre, precio, id_categoria, id_producto)
+        cursor.execute(sql, valores)
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+        
+        flash("Producto actualizado exitosamente", "success")
+        return redirect("/productos")
+    else:
+        # obtener datos del producto
+        sql = """
+        SELECT Nombre_Producto, Precio, Id_Categoria
+        FROM producto
+        WHERE Id_Producto=%s
+        """
+        cursor.execute(sql, (id_producto,))
+        producto = cursor.fetchone()
+        categorias = obtener_categorias("SELECT * FROM Categoria_Producto")
+        cursor.close()
+        conexion.close()
+        
+        return render_template("editar_producto.html", producto=producto, categorias=categorias, id_producto=id_producto)
+
+@app.route('/eliminar_producto/<int:id_producto>')
+def eliminar_producto(id_producto):
+    if "usuario_id" not in session:
+        flash("Debes iniciar sesión para eliminar productos", "warning")
+        return redirect("/login")
+    
+    conexion = obtener_conexion_db()
+    cursor = conexion.cursor()
+    sql = "DELETE FROM producto WHERE Id_Producto=%s"
+    cursor.execute(sql, (id_producto,))
+    conexion.commit()
+    cursor.close()
+    conexion.close()
+    
+    flash("Producto eliminado correctamente", "info")
+    return redirect("/productos")
+
+@app.route('/productos_comprador', methods=['GET', 'POST'])
+def productos_comprador():
+    from producto import obtener_productos_todos, obtener_productos_por_categoria
+    from categoria import obtener_categorias
+    
+    categorias = obtener_categorias("SELECT * FROM Categoria_Producto")
+
+    if request.method == "POST":
+        id_categoria = request.form.get("id_categoria")
+        
+        # Si no seleccionaron nada o eligen "todas"
+        if not id_categoria or id_categoria == "":
+            productos = obtener_productos_todos()
+        else:
+            productos = obtener_productos_por_categoria(id_categoria)
+    else:
+        productos = obtener_productos_todos()
+    
+    return render_template("productos_comprador.html", productos=productos, categorias=categorias)
+
+
+
+
 
 
 

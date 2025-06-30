@@ -1,28 +1,36 @@
 from db import obtener_conexion_db
 from werkzeug.security import generate_password_hash,check_password_hash
 
+from db import obtener_conexion_db
+from werkzeug.security import generate_password_hash
+import re
+
 def insertar_Usuario(Nombre, Dni, Telefono, Id_Rol, Nombre_E, Email, password, Descripcion, Estado_usuario):
     conexion = obtener_conexion_db()
     with conexion.cursor() as cursor:
-        
+        # Validar si ya existe
         cursor.execute("SELECT * FROM Usuario WHERE Dni = %s", (Dni,))
         usuario_existente = cursor.fetchone()
-
         if usuario_existente:
             conexion.close()
-            return "DNI ya registrado"  
-        
-        password_hasheada = generate_password_hash(password)
+            return {"success": False, "message": "DNI ya registrado"}
 
-        
+        # Validar contraseña
+        # Mínimo 8 caracteres, al menos 1 número y 1 carácter especial
+        regex = r'^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};\'":\\|,.<>\/?]).{8,}$'
+        if not re.match(regex, password):
+            conexion.close()
+            return {"success": False, "message": "La contraseña debe tener al menos 8 caracteres, incluir un número y un carácter especial."}
+
+        password_hash = generate_password_hash(password)
         cursor.execute("""
             INSERT INTO Usuario(Nombre, Dni, Telefono, Id_Rol, Nombre_E, Email, password, Descripcion, Estado_usuario)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (Nombre, Dni, Telefono, Id_Rol, Nombre_E, Email, password_hasheada, Descripcion, Estado_usuario))
-        
+        """, (Nombre, Dni, Telefono, Id_Rol, Nombre_E, Email, password_hash, Descripcion, Estado_usuario))
         conexion.commit()
     conexion.close()
-    return "Usuario registrado correctamente"
+    return {"success": True, "message": "Usuario registrado correctamente"}
+
 
 def login_usuario(Dni, password):
     conexion = obtener_conexion_db()

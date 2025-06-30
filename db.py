@@ -5,5 +5,5 @@ def obtener_conexion_db():
         host='localhost',
         user='root',
         passwd='',
-        db='Agro'
+        db='ProyectoAgro'
         )

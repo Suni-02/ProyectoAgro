@@ -1,50 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../static/css/output.css">
-    <title>hola con tailwind</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- Estilos globales -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
+
+  <!-- Estilos adicionales específicos de cada página -->
+  {% block styles %}{% endblock %}
+
+  <title>hola con tailwind</title>
 </head>
 <body>
-    <nav class="bg-green-800">
-        <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-            <div class="relative flex h-16 items-center justify-between">
-                <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
-                    <!-- Mobile menu button -->
-                    <button type="button" class="relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:ring-2 focus:ring-white focus:outline-hidden focus:ring-inset" aria-controls="mobile-menu" aria-expanded="false">
-                        <span class="absolute -inset-0.5"></span>
-                        <span class="sr-only">Open main menu</span>
-                        <svg class="hidden size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                <div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
-                    <div class="hidden sm:ml-6 sm:block">
-                        <div class="flex space-x-4">
-                            <a href="{{ url_for('home') }}" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white" aria-current="page">HOME</a>
-                            <a href="{{ url_for('categoria') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Categoría</a>
-                            <a href="{{ url_for('mostrar_productos') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Productos</a>
-                            <a href="{{ url_for('rol') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Rol</a>
-                            <a href="{{ url_for('crear_producto') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Crear Producto</a>
-                            {% if not session.get("usuario_id") %}
-                                <a href="{{ url_for('register') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Register</a>
-                                <a href="{{ url_for('login') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Login</a>
-                            {% else %}
-                                <a href="{{ url_for('perfil') }}" class="rounded-md px-3 py-2 text-sm font-medium text-white hover:bg-gray-700">Perfil</a>                                <a href="{{ url_for('logout') }}" class="rounded-md px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-600 hover:text-white">Cerrar sesión</a>
+  <nav class="bg-green-800">
+    <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
+      <div class="relative flex h-16 items-center justify-between">
 
-                            {% endif %}
+        <div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
+          <div class="hidden sm:ml-6 sm:block">
+            <div class="flex space-x-4">
 
-                            
-                        </div>
-                    </div>
-                </div>
+              {% if session.get("usuario_id") and session.get("rol") == "Granjero" %}
+                <a href="{{ url_for('mostrar_productos') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Mis Productos</a>
+                <a href="{{ url_for('crear_producto') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Crear Producto</a>
+              {% endif %}
+
+              {% if session.get("usuario_id") and session.get("rol") == "Empresa" %}
+                <a href="{{ url_for('productos_comprador') }}" class="rounded-md px-3 py-2 text-sm font-medium bg-white text-gray-900 hover:bg-gray-200">Ver productos</a>
+              {% endif %}
+
+              {% if not session.get("usuario_id") %}
+                <a href="{{ url_for('register') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Register</a>
+                <a href="{{ url_for('login') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Login</a>
+              {% else %}
+                <a href="{{ url_for('perfil') }}" class="rounded-md px-3 py-2 text-sm font-medium text-white hover:bg-gray-700">Perfil</a>
+              {% endif %}
+
             </div>
+          </div>
         </div>
-    </nav>
 
-    {% block content %}
-    {% endblock %}
+        {% if session.get("usuario_id") %}
+        <div class="hidden sm:block">
+          <a href="{{ url_for('logout') }}" class="rounded-md px-3 py-2 text-sm font-medium text-red-300 hover:bg-red-600 hover:text-white">Cerrar sesión</a>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </nav>
+
+  {% block content %}{% endblock %}
 </body>
 </html>

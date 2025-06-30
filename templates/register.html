@@ -1,7 +1,5 @@
 {% extends "index.html" %}
 
-
-
 {% block content %}
 <div class="max-w-xl mx-auto mt-10 bg-white p-8 rounded-lg shadow-lg">
 <h2 class="text-2xl font-bold mb-6 text-center">Registro de Usuario</h2>
@@ -11,32 +9,36 @@
 <div>
 <label for="Nombre" class="block text-sm font-medium text-gray-700">Nombre completo</label>
 <input type="text" name="Nombre" id="Nombre" required
-        class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
 </div>
 
 <!-- DNI -->
 <div>
 <label for="Dni" class="block text-sm font-medium text-gray-700">DNI</label>
 <input type="text" name="Dni" id="Dni" required
-        class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+placeholder="Ej: 12345678">
+<p id="dniError" class="text-red-500 text-sm mt-1 hidden">
+El DNI debe ser numérico y tener al menos 8 dígitos.
+</p>
 </div>
 
 <!-- Teléfono -->
 <div>
 <label for="Telefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
 <input type="text" name="Telefono" id="Telefono" required
-        class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
 </div>
 
 <!-- Rol -->
 <div>
 <label for="Rol" class="block text-sm font-medium text-gray-700">Rol</label>
 <select name="Rol" id="Rol" required
-        class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
-        <option value="" disabled selected>Seleccione un rol</option>
-                {% for rol in roles %}
-                <option value="{{ rol[0] }}">{{ rol[1] }}</option>
-                {% endfor %}
+class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+<option value="" disabled selected>Seleccione un rol</option>
+{% for rol in roles %}
+        <option value="{{ rol[0] }}">{{ rol[1] }}</option>
+{% endfor %}
 </select>
 </div>
 
@@ -44,41 +46,81 @@
 <div>
 <label for="Nombre_E" class="block text-sm font-medium text-gray-700">Nombre de la empresa</label>
 <input type="text" name="Nombre_E" id="Nombre_E"
-        class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
 </div>
 
 <!-- Email -->
 <div>
 <label for="Email" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
 <input type="email" name="Email" id="Email" required
-        class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
 </div>
 
 <!-- Contraseña -->
 <div>
 <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
 <input type="password" name="password" id="password" required
-        class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+placeholder="********">
+<p id="passwordError" class="text-red-500 text-sm mt-1 hidden">
+La contraseña debe tener al menos 8 caracteres, un número y un carácter especial.
+</p>
 </div>
 
 <!-- Descripción -->
 <div>
 <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
 <textarea name="descripcion" id="descripcion" rows="3"
-                class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Agrega una breve descripción (opcional)"></textarea>
+class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+placeholder="Agrega una breve descripción (opcional)"></textarea>
 </div>
 
 <!-- Botón -->
 <div>
-<button type="submit"
-        class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-        Registrarse
+<button id="submitBtn" type="submit"
+class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+disabled>
+Registrarse
 </button>
 </div>
 
 </form>
 </div>
 
+<script>
+const passwordInput = document.getElementById("password");
+const dniInput = document.getElementById("Dni");
+const submitBtn = document.getElementById("submitBtn");
+const errorMsg = document.getElementById("passwordError");
+const dniError = document.getElementById("dniError");
 
+function validarFormulario() {
+const password = passwordInput.value;
+const dni = dniInput.value;
+
+const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+const dniRegex = /^[0-9]{8,}$/;
+
+let valido = true;
+
+if (!passwordRegex.test(password)) {
+errorMsg.classList.remove("hidden");
+valido = false;
+} else {
+errorMsg.classList.add("hidden");
+}
+
+if (!dniRegex.test(dni)) {
+dniError.classList.remove("hidden");
+valido = false;
+} else {
+dniError.classList.add("hidden");
+}
+
+submitBtn.disabled = !valido;
+}
+
+passwordInput.addEventListener("input", validarFormulario);
+dniInput.addEventListener("input", validarFormulario);
+</script>
 {% endblock %}
