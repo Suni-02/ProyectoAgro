@@ -4,6 +4,7 @@ from producto import insertar_producto, obtener_productos_con_usuario
 from categoria import insertar_categoria
 from rol import insertar_rol,obtener_rol
 from usuario import insertar_Usuario, login_usuario
+from pedido import insertar_pedido
 from db import obtener_conexion_db
 app = Flask(__name__)
 app.secret_key = "grupoAgro" 
@@ -161,6 +162,7 @@ def guardar_producto():
     flash("Producto guardado exitosamente", "success")
     return redirect("/productos")  # o a donde quieras redirigir
 
+
 @app.route('/editar_producto/<int:id_producto>', methods=["GET", "POST"])
 def editar_producto(id_producto):
     if "usuario_id" not in session:
@@ -222,6 +224,7 @@ def eliminar_producto(id_producto):
     flash("Producto eliminado correctamente", "info")
     return redirect("/productos")
 
+
 @app.route('/productos_comprador', methods=['GET', 'POST'])
 def productos_comprador():
     from producto import obtener_productos_todos, obtener_productos_por_categoria
@@ -264,6 +267,240 @@ def logout():
     flash("Sesión cerrada correctamente", "info")
     return redirect("/login")  # Redirige al login u otra ruta
 
+
+# --------------------
+# RUTA: crear_pedido
+# --------------------
+@app.route("/crear_pedido", methods=["GET", "POST"])
+def crear_pedido():
+    if "usuario_id" not in session:
+        flash("Debes iniciar sesión para crear pedidos", "warning")
+        return redirect("/login")
+
+    if session["rol"] != "Granjeros":
+        flash("Solo los granjeros pueden crear pedidos", "danger")
+        return redirect("/")
+
+    if request.method == "POST":
+        id_granjero = session["usuario_id"]
+        id_empresa = request.form["id_empresa"]
+
+        conexion = obtener_conexion_db()
+        with conexion.cursor() as cursor:
+            sql = """
+                INSERT INTO Pedido (Id_Granjero, Id_Empresa, Fecha_Pedido, Total_Pedido)
+                VALUES (%s, %s, NOW(), 0)
+            """
+            cursor.execute(sql, (id_granjero, id_empresa))
+            id_pedido = cursor.lastrowid
+            conexion.commit()
+        conexion.close()
+
+        flash("Pedido creado correctamente. Ahora agrega los productos.", "success")
+        return redirect(f"/agregar_detalle_pedido/{id_pedido}")
+
+    return render_template("crear_pedido.html")
+
+
+# --------------------
+# RUTA: agregar_detalle_pedido
+# --------------------
+@app.route("/agregar_detalle_pedido/<int:id_pedido>", methods=["GET", "POST"])
+def agregar_detalle_pedido(id_pedido):
+    if "usuario_id" not in session:
+        flash("Debes iniciar sesión primero", "warning")
+        return redirect("/login")
+
+    id_granjero = session["usuario_id"]
+
+    conexion = obtener_conexion_db()
+    cursor = conexion.cursor()
+
+    if request.method == "POST":
+        ids_productos = request.form.getlist("id_producto[]")
+        cantidades = request.form.getlist("cantidad[]")
+
+        for id_prod, cant in zip(ids_productos, cantidades):
+            if id_prod and cant:
+                cantidad = int(cant)
+                cursor.execute("SELECT Precio FROM Producto WHERE Id_Producto=%s", (id_prod,))
+                precio_unitario = cursor.fetchone()[0]
+                precio_total_producto = precio_unitario * cantidad
+
+                try:
+                    cursor.execute("""
+                        INSERT INTO Detalle_Pedido (Id_Pedido, Id_Producto, Cantidad, Precio)
+                        VALUES (%s, %s, %s, %s)
+                        ON DUPLICATE KEY UPDATE Cantidad=VALUES(Cantidad), Precio=VALUES(Precio)
+                    """, (id_pedido, id_prod, cantidad, precio_total_producto))
+                    conexion.commit()
+                except Exception as e:
+                    flash(f"Error al agregar detalle: {e}", "danger")
+
+        # actualizar total
+        cursor.execute("""
+            SELECT SUM(Precio)
+            FROM Detalle_Pedido
+            WHERE Id_Pedido=%s
+        """, (id_pedido,))
+        total_actualizado = cursor.fetchone()[0] or 0
+
+        cursor.execute("""
+            UPDATE Pedido
+            SET Total_Pedido = %s
+            WHERE Id_Pedido = %s
+        """, (total_actualizado, id_pedido))
+        conexion.commit()
+
+        # si se presionó el botón Finalizar
+        if request.form.get("finalizar"):
+            flash("Pedido finalizado correctamente", "success")
+            return redirect("/pedidos_granjero")
+
+        # si no, sigue agregando productos
+        flash("Productos agregados correctamente", "success")
+        return redirect(f"/agregar_detalle_pedido/{id_pedido}")
+
+    # productos disponibles
+    cursor.execute("""
+        SELECT Id_Producto, Nombre_Producto
+        FROM Producto
+        WHERE Id_Usuario=%s
+    """, (id_granjero,))
+    productos = cursor.fetchall()
+
+    # productos ya agregados
+    cursor.execute("""
+        SELECT d.Id_Producto, p.Nombre_Producto, d.Cantidad, d.Precio
+        FROM Detalle_Pedido d
+        JOIN Producto p ON d.Id_Producto = p.Id_Producto
+        WHERE d.Id_Pedido=%s
+    """, (id_pedido,))
+    detalles = cursor.fetchall()
+
+    cursor.execute("""
+        SELECT Total_Pedido
+        FROM Pedido
+        WHERE Id_Pedido=%s
+    """, (id_pedido,))
+    total_pedido = cursor.fetchone()[0] or 0
+
+    cursor.close()
+    conexion.close()
+
+    return render_template("agregar_detalle_pedido.html", productos=productos, detalles=detalles, id_pedido=id_pedido, total_pedido=total_pedido)
+
+# --------------------
+# RUTA: pedidos_empresa
+# --------------------
+@app.route('/pedidos_empresa')
+def pedidos_empresa():
+    if "usuario_id" not in session:
+        flash("Debes iniciar sesión para ver tus pedidos", "warning")
+        return redirect("/login")
+    
+    if session["rol"] != "Empresa":
+        flash("Solo las empresas pueden ver esta lista", "danger")
+        return redirect("/")
+
+    id_empresa = session["usuario_id"]
+
+    conexion = obtener_conexion_db()
+    cursor = conexion.cursor()
+
+    cursor.execute("""
+        SELECT p.Id_Pedido, p.Total_Pedido, u.Nombre AS nombre_granjero
+        FROM Pedido p
+        JOIN usuario u ON p.Id_Granjero = u.Id_Usuario
+        WHERE p.Id_Empresa = %s
+    """, (id_empresa,))
+    
+    pedidos = cursor.fetchall()
+    cursor.close()
+    conexion.close()
+
+    return render_template("pedidos_empresa.html", pedidos=pedidos)
+
+# --------------------
+# RUTA: pedidos_granjero
+# --------------------
+@app.route('/pedidos_granjero')
+def pedidos_granjero():
+    if "usuario_id" not in session:
+        flash("Debes iniciar sesión para ver tus pedidos", "warning")
+        return redirect("/login")
+    
+    if session["rol"] != "Granjeros":
+        flash("Solo los granjeros pueden ver esta lista", "danger")
+        return redirect("/")
+
+    id_granjero = session["usuario_id"]
+
+    conexion = obtener_conexion_db()
+    cursor = conexion.cursor()
+
+    cursor.execute("""
+        SELECT p.Id_Pedido, p.Total_Pedido, u.Nombre_E AS nombre_empresa
+        FROM Pedido p
+        JOIN usuario u ON p.Id_Empresa = u.Id_Usuario
+        WHERE p.Id_Granjero = %s
+    """, (id_granjero,))
+    
+    pedidos = cursor.fetchall()
+    cursor.close()
+    conexion.close()
+
+    return render_template("pedidos_granjero.html", pedidos=pedidos)
+
+@app.route('/detalle_pedido/<int:id_pedido>')
+def detalle_pedido(id_pedido):
+    if "usuario_id" not in session:
+        flash("Debes iniciar sesión", "warning")
+        return redirect("/login")
+    
+    conexion = obtener_conexion_db()
+    cursor = conexion.cursor()
+    
+    cursor.execute("""
+        SELECT d.Id_Producto, p.Nombre_Producto, d.Cantidad, d.Precio
+        FROM Detalle_Pedido d
+        JOIN Producto p ON d.Id_Producto = p.Id_Producto
+        WHERE d.Id_Pedido = %s
+    """, (id_pedido,))
+    
+    detalles = cursor.fetchall()
+    
+    cursor.close()
+    conexion.close()
+    
+    return render_template("detalle_pedido.html", detalles=detalles, id_pedido=id_pedido)
+
+@app.route('/detalle_pedido_granjero/<int:id_pedido>')
+def detalle_pedido_granjero(id_pedido):
+    if "usuario_id" not in session:
+        flash("Debes iniciar sesión", "warning")
+        return redirect("/login")
+    
+    if session["rol"] != "Granjeros":
+        flash("No tienes permiso para ver este detalle", "danger")
+        return redirect("/")
+    
+    conexion = obtener_conexion_db()
+    cursor = conexion.cursor()
+    
+    cursor.execute("""
+        SELECT d.Id_Producto, p.Nombre_Producto, d.Cantidad, d.Precio
+        FROM Detalle_Pedido d
+        JOIN Producto p ON d.Id_Producto = p.Id_Producto
+        WHERE d.Id_Pedido = %s
+    """, (id_pedido,))
+    
+    detalles = cursor.fetchall()
+    
+    cursor.close()
+    conexion.close()
+    
+    return render_template("detalle_pedido_granjero.html", detalles=detalles, id_pedido=id_pedido)
 
 
 app.run(debug= True)

@@ -27,7 +27,11 @@ El DNI debe ser numérico y tener al menos 8 dígitos.
 <div>
 <label for="Telefono" class="block text-sm font-medium text-gray-700">Teléfono</label>
 <input type="text" name="Telefono" id="Telefono" required
-class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+class="mt-1 w-full px-4 py-2 border rounded-lg border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+placeholder="Ej: 3001234567">
+<p id="telefonoError" class="text-red-500 text-sm mt-1 hidden">
+El teléfono debe ser numérico y tener exactamente 10 dígitos.
+</p>
 </div>
 
 <!-- Rol -->
@@ -90,37 +94,49 @@ Registrarse
 <script>
 const passwordInput = document.getElementById("password");
 const dniInput = document.getElementById("Dni");
+const telefonoInput = document.getElementById("Telefono");
 const submitBtn = document.getElementById("submitBtn");
 const errorMsg = document.getElementById("passwordError");
 const dniError = document.getElementById("dniError");
+const telefonoError = document.getElementById("telefonoError");
 
 function validarFormulario() {
-const password = passwordInput.value;
-const dni = dniInput.value;
+    const password = passwordInput.value;
+    const dni = dniInput.value;
+    const telefono = telefonoInput.value;
 
-const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
-const dniRegex = /^[0-9]{8,}$/;
+    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    const dniRegex = /^[0-9]{8,}$/;
+    const telefonoRegex = /^[0-9]{10}$/;
 
-let valido = true;
+    let valido = true;
 
-if (!passwordRegex.test(password)) {
-errorMsg.classList.remove("hidden");
-valido = false;
-} else {
-errorMsg.classList.add("hidden");
-}
+    if (!passwordRegex.test(password)) {
+        errorMsg.classList.remove("hidden");
+        valido = false;
+    } else {
+        errorMsg.classList.add("hidden");
+    }
 
-if (!dniRegex.test(dni)) {
-dniError.classList.remove("hidden");
-valido = false;
-} else {
-dniError.classList.add("hidden");
-}
+    if (!dniRegex.test(dni)) {
+        dniError.classList.remove("hidden");
+        valido = false;
+    } else {
+        dniError.classList.add("hidden");
+    }
 
-submitBtn.disabled = !valido;
+    if (!telefonoRegex.test(telefono)) {
+        telefonoError.classList.remove("hidden");
+        valido = false;
+    } else {
+        telefonoError.classList.add("hidden");
+    }
+
+    submitBtn.disabled = !valido;
 }
 
 passwordInput.addEventListener("input", validarFormulario);
 dniInput.addEventListener("input", validarFormulario);
+telefonoInput.addEventListener("input", validarFormulario);
 </script>
 {% endblock %}

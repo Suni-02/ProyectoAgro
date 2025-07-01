@@ -21,13 +21,16 @@
           <div class="hidden sm:ml-6 sm:block">
             <div class="flex space-x-4">
 
-              {% if session.get("usuario_id") and session.get("rol") == "Granjero" %}
+              {% if session.get("usuario_id") and session.get("rol") == "Granjeros" %}
                 <a href="{{ url_for('mostrar_productos') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Mis Productos</a>
                 <a href="{{ url_for('crear_producto') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Crear Producto</a>
+                <a href="{{ url_for('crear_pedido') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Crear Pedido</a>
+                <a href="{{ url_for('pedidos_granjero') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Mis Pedidos</a>
               {% endif %}
 
               {% if session.get("usuario_id") and session.get("rol") == "Empresa" %}
                 <a href="{{ url_for('productos_comprador') }}" class="rounded-md px-3 py-2 text-sm font-medium bg-white text-gray-900 hover:bg-gray-200">Ver productos</a>
+                <a href="{{ url_for('pedidos_empresa') }}" class="rounded-md px-3 py-2 text-sm font-medium text-gray-300 hover:bg-gray-700 hover:text-white">Mis Pedidos</a>
               {% endif %}
 
               {% if not session.get("usuario_id") %}

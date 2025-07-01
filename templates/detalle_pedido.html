@@ -1,0 +1,28 @@
+{% extends "index.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10">
+  <h2 class="text-2xl font-bold mb-4">Detalle del pedido #{{ id_pedido }}</h2>
+  {% if detalles %}
+  <table class="w-full border">
+    <thead class="bg-gray-200">
+      <tr>
+        <th>Producto</th>
+        <th>Cantidad</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in detalles %}
+      <tr>
+        <td class="border px-2">{{ d[1] }}</td>
+        <td class="border px-2">{{ d[2] }}</td>
+        <td class="border px-2">${{ "{:,.0f}".format(d[3]) }} COP</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>Este pedido no tiene productos aún.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -19,13 +19,13 @@
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for producto in productos %}
       <div class="bg-white shadow rounded p-4">
-        <h2 class="text-xl font-semibold">{{ producto[0] }}</h2>
-        <p class="text-gray-700 mt-2"><strong>Precio:</strong> ${{ producto[1] }}</p>
+        <h2 class="text-xl font-semibold">{{ producto[0].upper() }}</h2>
+        <p class="text-gray-700 mt-2"><strong>Precio:</strong> ${{ "{:,.0f}".format(producto[1]) }} COP</p>
         <p class="text-gray-700"><strong>Vendedor:</strong> {{ producto[2] }}</p>
         <p class="text-gray-700"><strong>Categoría:</strong> {{ producto[3] }}</p>
         <a href="{{ url_for('perfil_publico', id_usuario=producto[4])}}"
-           class="mt-2 inline-block bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
-           Ver vendedor
+          class="mt-2 inline-block bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700">
+          Ver vendedor
         </a>
       </div>
     {% endfor %}

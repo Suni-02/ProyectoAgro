@@ -15,8 +15,12 @@ def insertar_Usuario(Nombre, Dni, Telefono, Id_Rol, Nombre_E, Email, password, D
             conexion.close()
             return {"success": False, "message": "DNI ya registrado"}
 
+        # Validar longitud y formato del teléfono
+        if not re.fullmatch(r'\d{10}', Telefono):
+            conexion.close()
+            return {"success": False, "message": "El teléfono debe tener exactamente 10 dígitos numéricos"}
+
         # Validar contraseña
-        # Mínimo 8 caracteres, al menos 1 número y 1 carácter especial
         regex = r'^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};\'":\\|,.<>\/?]).{8,}$'
         if not re.match(regex, password):
             conexion.close()
@@ -30,6 +34,7 @@ def insertar_Usuario(Nombre, Dni, Telefono, Id_Rol, Nombre_E, Email, password, D
         conexion.commit()
     conexion.close()
     return {"success": True, "message": "Usuario registrado correctamente"}
+
 
 
 def login_usuario(Dni, password):

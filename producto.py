@@ -15,11 +15,13 @@ def obtener_productos_con_usuario(id_usuario):
     cursor = conexion.cursor()
     sql = """
     SELECT 
+        p.Id_Producto, 
         p.Nombre_Producto, 
         p.Precio, 
         u.Nombre,
         c.Nombre_Categoria,
         u.Id_Usuario
+
     FROM producto p
     JOIN usuario u ON p.Id_Usuario = u.Id_Usuario
     JOIN categoria_producto c ON p.Id_Categoria = c.Id_Categoria
@@ -30,6 +32,7 @@ def obtener_productos_con_usuario(id_usuario):
     cursor.close()
     conexion.close()
     return productos
+
 
 
 

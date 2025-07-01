@@ -1,0 +1,34 @@
+{% extends "index.html" %}
+{% block content %}
+<div class="max-w-4xl mx-auto mt-10">
+  <h2 class="text-2xl font-bold mb-4">Mis pedidos (Granjero)</h2>
+  {% if pedidos %}
+  <table class="w-full border">
+    <thead class="bg-gray-200">
+      <tr>
+        <th>ID Pedido</th>
+        <th>Empresa</th>
+        <th>Total Pedido</th>
+        <th>Ver Detalle</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in pedidos %}
+      <tr>
+        <td class="border px-2">{{ p[0] }}</td>
+        <td class="border px-2">{{ p[2] }}</td>
+        <td class="border px-2">${{ "{:,.0f}".format(p[1]) }} COP</td>
+        <td class="border px-2">
+          <a href="{{ url_for('detalle_pedido_granjero', id_pedido=p[0]) }}" class="text-green-700 hover:underline">
+            Ver detalle
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>No tienes pedidos registrados aún.</p>
+  {% endif %}
+</div>
+{% endblock %}

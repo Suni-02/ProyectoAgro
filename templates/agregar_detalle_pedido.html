@@ -1,0 +1,45 @@
+{% extends "index.html" %}
+{% block content %}
+<div class="max-w-3xl mx-auto mt-8 bg-white p-6 rounded shadow">
+  <h2 class="text-xl font-bold mb-4">Agregar varios productos al Pedido #{{id_pedido}}</h2>
+  <form method="POST" class="space-y-4">
+    {% for i in range(5) %}
+    <div class="grid grid-cols-2 gap-4 items-center mb-2">
+      <div>
+        <label class="block text-gray-700">Producto {{ i+1 }}</label>
+        <select name="id_producto[]" class="w-full border rounded py-2 px-4">
+          <option value="">-- Seleccionar --</option>
+          {% for p in productos %}
+            <option value="{{p[0]}}">{{p[1]}}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-gray-700">Cantidad</label>
+        <input type="number" name="cantidad[]" min="1" class="w-full border rounded py-2 px-4">
+      </div>
+    </div>
+    {% endfor %}
+    
+    <div class="flex gap-4 mt-4">
+      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex-1">
+        Agregar Productos
+      </button>
+      <button type="submit" name="finalizar" value="1" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 flex-1">
+        Finalizar Pedido
+      </button>
+    </div>
+  </form>
+
+  <h3 class="mt-6 font-semibold">Productos agregados hasta ahora:</h3>
+  <ul class="list-disc pl-4">
+    {% for d in detalles %}
+      <li>{{ d[1] }} - Cantidad: {{ d[2] }} - Subtotal: ${{ d[3] }}</li>
+    {% endfor %}
+  </ul>
+
+  <div class="mt-4 font-bold">
+    Total del pedido: ${{ total_pedido }}
+  </div>
+</div>
+{% endblock %}
